@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="stdafx.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="math">
+      <UniqueIdentifier>{5f8bf32f-7e68-401f-b8e1-21b39943a34b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
