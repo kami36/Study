@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "math.h"
 
+using namespace common;
 
 Vector4 Vector4::operator * ( const Matrix44& rhs ) const
 {

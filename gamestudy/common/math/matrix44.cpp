@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "math.h"
 
+using namespace common;
 
 Matrix44::Matrix44()
 {

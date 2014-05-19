@@ -1,7 +1,7 @@
 #pragma once
 
 
-const float MATH_PI = 3.1415f;
+const float MATH_PI = 3.14159f;
 
 
 #include <windows.h>
