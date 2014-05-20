@@ -1,10 +1,14 @@
 #include "stdafx.h"
 #include <windows.h>
+#include <string>
+#include <fstream>
 #include <d3d9.h>
 #include <d3dx9.h>
-//#include "math/Math.h"
+//#include "../common/common.h"
 #pragma comment( lib, "d3d9.lib" )
 #pragma comment( lib, "d3dx9.lib" )
+
+using namespace std;
 
 LPDIRECT3DDEVICE9	g_pDevice = NULL;
 const int WINSIZE_X = 1024;		//초기 윈도우 가로 크기
@@ -14,24 +18,34 @@ const int WINPOS_Y = 0; //초기 윈도우 시작 위치 Y
 
 LPDIRECT3DVERTEXBUFFER9 g_pVB = NULL; // 버텍스 버퍼
 LPDIRECT3DINDEXBUFFER9 g_pIB = NULL; // 인덱스 버퍼
+int g_VtxSize = 0;
+int g_FaceSize = 0;
+D3DMATERIAL9 g_Mtrl;
+D3DLIGHT9 g_Light;
+
 
 // 버텍스 구조체
 struct Vertex
 {
 	Vertex() {}
-	Vertex(float x0, float y0, float z0) : x(x0), y(y0), z(z0) {}
-	float x, y, z; // The transformed position for the vertex
+	Vertex(float x0, float y0, float z0) : p(Vector3(x0, y0, z0)), n(Vector3(0,0,0)) {}
+	Vector3 p;
+	Vector3 n;
 	static const DWORD FVF;
 };
 //버텍스 구조체 포맷.
-const DWORD Vertex::FVF  = D3DFVF_XYZ;
+const DWORD Vertex::FVF  = D3DFVF_XYZ | D3DFVF_NORMAL;
 
 
-// 콜백 프로시져 함수 프로토 타입 
+
+// 콜백 프로시져 함수 프로토 타입
 LRESULT CALLBACK WndProc( HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam );
 bool InitDirectX(HWND hWnd);
 bool InitVertexBuffer();
 void Render(int timeDelta);
+bool ReadModelFile( const string &fileName, LPDIRECT3DVERTEXBUFFER9 &vtxBuff, int &vtxSize,  LPDIRECT3DINDEXBUFFER9 &idxBuff, int &faceSize );
+void ComputeNormals(LPDIRECT3DVERTEXBUFFER9 vtxBuff, int vtxSize,  LPDIRECT3DINDEXBUFFER9 idxBuff, int faceSize);
+
 
 int APIENTRY WinMain(HINSTANCE hInstance, 
 	HINSTANCE hPrevInstance, 
@@ -244,11 +258,11 @@ void Render(int timeDelta)
 		r = rx*ry;
 		g_pDevice->SetTransform(D3DTS_WORLD, (D3DXMATRIX*)&r);
 
-
+		g_pDevice->SetMaterial(&g_Mtrl);
 		g_pDevice->SetStreamSource( 0, g_pVB, 0, sizeof(Vertex) );
 		g_pDevice->SetIndices(g_pIB);
 		g_pDevice->SetFVF( Vertex::FVF );
-		g_pDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 8, 0, 12);
+		g_pDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, g_VtxSize, 0, g_FaceSize);
 
 		//랜더링 끝
 		g_pDevice->EndScene();
@@ -260,79 +274,165 @@ void Render(int timeDelta)
 
 bool InitVertexBuffer()
 {
-	// 버텍스 버퍼 생성.
-	if (FAILED(g_pDevice->CreateVertexBuffer( 8 * sizeof(Vertex),
-		D3DUSAGE_WRITEONLY, Vertex::FVF,
-		D3DPOOL_MANAGED, &g_pVB, NULL)))
-	{
-		return false;
-	}
+	ReadModelFile("vase.dat", g_pVB, g_VtxSize, g_pIB, g_FaceSize);
 
-	// 버텍스 버퍼 초기화.
-	Vertex* vertices;
-	if (FAILED(g_pVB->Lock( 0, sizeof(Vertex), (void**)&vertices, 0)))
-		return false;
+	ZeroMemory(&g_Mtrl, sizeof(g_Mtrl));
+	g_Mtrl.Ambient = D3DXCOLOR(1,0,0,1);
+	g_Mtrl.Diffuse = D3DXCOLOR(1,0,0,1);
+	g_Mtrl.Specular = D3DXCOLOR(1,0,0,1);
+	g_Mtrl.Emissive = D3DXCOLOR(0,0,0,1);
+	g_Mtrl.Power = 0.f;
 
-	vertices[ 0] = Vertex(-1, -1, -1);
-	vertices[ 1] = Vertex(-1, 1, -1);
-	vertices[ 2] = Vertex(1, 1, -1);
-	vertices[ 3] = Vertex(1, -1, -1);
-	vertices[ 4] = Vertex(-1, -1, 1);
-	vertices[ 5] = Vertex(-1, 1, 1);
-	vertices[ 6] = Vertex(1, 1, 1);
-	vertices[ 7] = Vertex(1, -1, 1);
-	g_pVB->Unlock();
-
-
-	if (FAILED(g_pDevice->CreateIndexBuffer(36*sizeof(WORD), 
-		D3DUSAGE_WRITEONLY,
-		D3DFMT_INDEX16,
-		D3DPOOL_MANAGED,
-		&g_pIB, NULL)))
-	{
-		return false;
-	}
-
-	WORD *indices = NULL;
-	g_pIB->Lock(0, 0, (void**)&indices, 0);
-
-	int index = 0;
-	// front
-	indices[ index++] = 0; indices[ index++] = 1; indices[ index++] = 2;
-	indices[ index++] = 0; indices[ index++] = 2; indices[ index++] = 3;
-
-	// back
-	indices[ index++] = 4; indices[ index++] = 6; indices[ index++] = 5;
-	indices[ index++] = 4; indices[ index++] = 7; indices[ index++] = 6;
-
-	// left
-	indices[ index++] = 4; indices[ index++] = 5; indices[ index++] = 1;
-	indices[ index++] = 4; indices[ index++] = 1; indices[ index++] = 0;
-
-	// right
-	indices[ index++] = 3; indices[ index++] = 2; indices[ index++] = 6;
-	indices[ index++] = 3; indices[ index++] = 6; indices[ index++] = 7;
-
-	// top
-	indices[ index++] = 1; indices[ index++] = 5; indices[ index++] = 6;
-	indices[ index++] = 1; indices[ index++] = 6; indices[ index++] = 2;
-
-	// bottom
-	indices[ index++] = 4; indices[ index++] = 0; indices[ index++] = 3;
-	indices[ index++] = 4; indices[ index++] = 3; indices[ index++] = 7;
-	g_pIB->Unlock();
+	D3DXCOLOR color(1,1,1,1);
+	ZeroMemory(&g_Light, sizeof(g_Light));
+	g_Light.Type = D3DLIGHT_DIRECTIONAL;
+	g_Light.Ambient = color * 0.4f;
+	g_Light.Diffuse = color;
+	g_Light.Specular = color * 0.6f;
+	g_Light.Direction = *(D3DXVECTOR3*)&Vector3(1,0,0);	
 
 	Matrix44 V;
 	Vector3 dir = Vector3(0,0,0)-Vector3(0,0,-5);
 	dir.Normalize();
-	V.SetView(Vector3(0,0,-5), dir, Vector3(0,1,0));
+	V.SetView(Vector3(0,0,-500), dir, Vector3(0,1,0));
 	g_pDevice->SetTransform(D3DTS_VIEW, (D3DXMATRIX*)&V);
 
 	Matrix44 proj;
 	proj.SetProjection(D3DX_PI * 0.5f, (float)WINSIZE_X / (float) WINSIZE_Y, 1.f, 1000.0f) ;
 	g_pDevice->SetTransform(D3DTS_PROJECTION, (D3DXMATRIX*)&proj) ;
 
-	g_pDevice->SetRenderState(D3DRS_FILLMODE, D3DFILL_WIREFRAME);
-	//	g_pDevice->SetRenderState(D3DRS_LIGHTING, false);
+	g_pDevice->SetLight(0, &g_Light); // 광원 설정.
+	g_pDevice->LightEnable (
+		0, // 활성화/ 비활성화 하려는 광원 리스트 내의 요소
+		true); // true = 활성화 ， false = 비활성화
+
 	return true;
+}
+
+
+bool ReadModelFile( const string &fileName, LPDIRECT3DVERTEXBUFFER9 &vtxBuff, int &vtxSize,  LPDIRECT3DINDEXBUFFER9 &idxBuff, int &faceSize )
+{
+	using namespace std;
+	ifstream fin(fileName.c_str());
+	if (!fin.is_open())
+		return false;
+
+	string vtx, vtx_eq;
+	int numVertices;
+	fin >> vtx >> vtx_eq >> numVertices;
+
+	if (numVertices <= 0)
+		return  false;
+
+	vtxSize = numVertices;
+
+	// 버텍스 버퍼 생성.
+	if (FAILED(g_pDevice->CreateVertexBuffer( numVertices * sizeof(Vertex),
+		D3DUSAGE_WRITEONLY, Vertex::FVF,
+		D3DPOOL_MANAGED, &vtxBuff, NULL)))
+	{
+		return false;
+	}
+
+	// 버텍스 버퍼 초기화.
+	Vertex* vertices;
+	if (FAILED(vtxBuff->Lock( 0, sizeof(Vertex), (void**)&vertices, 0)))
+		return false;
+	float num1, num2, num3;
+	for (int i = 0; i < numVertices; i++)
+	{
+		fin >> num1 >> num2 >> num3;
+		vertices[i] = Vertex(num1, num2, num3);
+	}
+	vtxBuff->Unlock();
+
+
+	string idx, idx_eq;
+	int numIndices;
+	fin >> idx >> idx_eq >> numIndices;
+
+	if (numIndices <= 0)
+		return false;
+
+	faceSize = numIndices;
+
+	if (FAILED(g_pDevice->CreateIndexBuffer(numIndices*3*sizeof(WORD), 
+		D3DUSAGE_WRITEONLY,
+		D3DFMT_INDEX16,
+		D3DPOOL_MANAGED,
+		&idxBuff, NULL)))
+	{
+		return false;
+	}
+
+	WORD *indices = NULL;
+	idxBuff->Lock(0, 0, (void**)&indices, 0);
+	int num4, num5, num6;
+	for (int i = 0; i < numIndices*3; i+=3)
+	{
+		fin >> num4 >> num5 >> num6;
+		indices[ i] = num4;
+		indices[ i+1] = num5;
+		indices[ i+2] = num6;	
+	}
+	idxBuff->Unlock();
+
+	ComputeNormals(vtxBuff, vtxSize, idxBuff, faceSize);
+	return true;
+}
+
+
+void ComputeNormals(LPDIRECT3DVERTEXBUFFER9 vtxBuff, int vtxSize,  LPDIRECT3DINDEXBUFFER9 idxBuff, int faceSize)
+{
+	Vertex* vertices;
+	vtxBuff->Lock( 0, sizeof(Vertex), (void**)&vertices, 0);
+	WORD *indices = NULL;
+	idxBuff->Lock(0, 0, (void**)&indices, 0);
+
+	for (int i=0; i < faceSize*3; i+=3)
+	{
+		Vector3 p1 = vertices[ indices[ i]].p;
+		Vector3 p2 = vertices[ indices[ i+1]].p;
+		Vector3 p3 = vertices[ indices[ i+2]].p;
+
+		Vector3 v1 = p2 - p1;
+		Vector3 v2 = p3 - p1;
+		v1.Normalize();
+		v2.Normalize();
+		Vector3 n = v1.CrossProduct(v2);
+		n.Normalize();
+
+		if (vertices[ indices[ i]].n.IsEmpty())
+		{
+			vertices[ indices[ i]].n = n;
+		}
+		else
+		{
+			vertices[ indices[ i]].n += n;
+			vertices[ indices[ i]].n /= 2.f;
+		}
+
+		if (vertices[ indices[ i+1]].n.IsEmpty())
+		{
+			vertices[ indices[ i+1]].n = n;
+		}
+		else
+		{
+			vertices[ indices[ i+1]].n += n;
+			vertices[ indices[ i+1]].n /= 2.f;
+		}
+
+		if (vertices[ indices[ i+2]].n.IsEmpty())
+		{
+			vertices[ indices[ i+2]].n = n;
+		}
+		else
+		{
+			vertices[ indices[ i+2]].n += n;
+			vertices[ indices[ i+2]].n /= 2.f;
+		}
+	}
+
+	vtxBuff->Unlock();
+	idxBuff->Unlock();
 }
