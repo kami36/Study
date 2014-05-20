@@ -11,6 +11,8 @@
 using namespace std;
 
 LPDIRECT3DDEVICE9	g_pDevice = NULL;
+//LPDIRECT3DDEVICE9	g_tiles[5];
+
 const int WINSIZE_X = 1024;		//초기 윈도우 가로 크기
 const int WINSIZE_Y = 768;	//초기 윈도우 세로 크기
 const int WINPOS_X = 0; //초기 윈도우 시작 위치 X
@@ -246,15 +248,15 @@ void Render(int timeDelta)
 		//화면 청소가 성공적으로 이루어 졌다면... 랜더링 시작
 		g_pDevice->BeginScene();
 
-		static float y = 0;
-		y += timeDelta / 1000.f;
-		// 각도가 2*PI 에 이르면 0으로 초기화한다.
-		if (y >= 6.28f)
-			y = 0;
+		//static float y = 0;
+		//y += timeDelta / 1000.f;
+		//// 각도가 2*PI 에 이르면 0으로 초기화한다.
+		//if (y >= 6.28f)
+		//	y = 0;
 
 		Matrix44 rx, ry, r;
-		rx.SetRotationX(MATH_PI/4.f); 	// x축으로 45도 회전시킨다.
-		ry.SetRotationY(y); // y축으로 회전
+		rx.SetRotationX(MATH_PI/-9.f); 	// x축으로 45도 회전시킨다.
+		//ry.SetRotationY(y); // y축으로 회전
 		r = rx*ry;
 		g_pDevice->SetTransform(D3DTS_WORLD, (D3DXMATRIX*)&r);
 
@@ -274,7 +276,7 @@ void Render(int timeDelta)
 
 bool InitVertexBuffer()
 {
-	ReadModelFile("vase.dat", g_pVB, g_VtxSize, g_pIB, g_FaceSize);
+	ReadModelFile("cube.dat", g_pVB, g_VtxSize, g_pIB, g_FaceSize);
 
 	ZeroMemory(&g_Mtrl, sizeof(g_Mtrl));
 	g_Mtrl.Ambient = D3DXCOLOR(1,0,0,1);
