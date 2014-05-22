@@ -5,9 +5,13 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="graphic.h" />
     <ClInclude Include="DxInit.h" />
+    <ClInclude Include="cMaterial.h" />
+    <ClInclude Include="cRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="DxInit.cpp" />
+    <ClCompile Include="cMaterial.cpp" />
+    <ClCompile Include="cRenderer.cpp" />
   </ItemGroup>
 </Project>

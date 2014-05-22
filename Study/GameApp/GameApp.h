@@ -15,13 +15,13 @@ const DWORD Vertex::FVF  = D3DFVF_XYZ | D3DFVF_NORMAL;
 class cGameApp : public framework::cGameMain
 {
 private:
-	LPDIRECT3DDEVICE9 g_peng;
-	LPDIRECT3DVERTEXBUFFER9 g_pVB;
-	LPDIRECT3DINDEXBUFFER9 g_pIB;
-	int g_VtxSize;
-	int g_FaceSize;
-	D3DMATERIAL9 g_Mtrl;
-	D3DLIGHT9 g_Light;
+	//LPDIRECT3DDEVICE9 _peng;
+	LPDIRECT3DVERTEXBUFFER9 _pVB;
+	LPDIRECT3DINDEXBUFFER9 _pIB;
+	int _VtxSize;
+	int _FaceSize;
+	D3DMATERIAL9 _Mtrl;
+	D3DLIGHT9 _Light;
 public:
 	cGameApp();
 	virtual ~cGameApp();

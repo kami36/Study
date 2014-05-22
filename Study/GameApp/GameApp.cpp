@@ -20,22 +20,21 @@ cGameApp::~cGameApp()
 
 bool cGameApp::OnInit()
 {
-	g_peng = NULL;
-	g_pVB = NULL;
-	g_pIB = NULL;
-	g_VtxSize = 8;
-	g_FaceSize = 12;
-
+	_pVB = NULL;
+	_pIB = NULL;
+	_VtxSize = 8;
+	_FaceSize = 12;
+	
 	// 버텍스 버퍼 생성.
-	if (FAILED(g_peng->CreateVertexBuffer( g_VtxSize * sizeof(Vertex),
+	if (FAILED(graphic::GetDevice()->CreateVertexBuffer( _VtxSize * sizeof(Vertex),
 		D3DUSAGE_WRITEONLY, Vertex::FVF,
-		D3DPOOL_MANAGED, &g_pVB, NULL)))
+		D3DPOOL_MANAGED, &_pVB, NULL)))
 	{
 		return false;
 	}
 	// 버텍스 버퍼 초기화.
 	Vertex* vertices;
-	if (FAILED(g_pVB->Lock( 0, sizeof(Vertex), (void**)&vertices, 0)))
+	if (FAILED(_pVB->Lock( 0, sizeof(Vertex), (void**)&vertices, 0)))
 		return false;
 
 	vertices[0] = Vertex(-10, -10, -10);
@@ -47,22 +46,22 @@ bool cGameApp::OnInit()
 	vertices[6] = Vertex( 10,  10,  10);
 	vertices[7] = Vertex(-10,  10,  10);
 
-	g_pVB->Unlock();
+	_pVB->Unlock();
 
-	//if (g_FaceSize <= 0)
+	//if (_FaceSize <= 0)
 	//	return false;
 	
-	if (FAILED(g_peng->CreateIndexBuffer(g_FaceSize*3*sizeof(WORD), 
+	if (FAILED(graphic::GetDevice()->CreateIndexBuffer(_FaceSize*3*sizeof(WORD), 
 		D3DUSAGE_WRITEONLY,
 		D3DFMT_INDEX16,
 		D3DPOOL_MANAGED,
-		&g_pIB, NULL)))
+		&_pIB, NULL)))
 	{
 		return false;
 	}
 
 	WORD *indices = NULL;
-	g_pIB->Lock(0, 0, (void**)&indices, 0);
+	_pIB->Lock(0, 0, (void**)&indices, 0);
 
 	indices[0] = 7;
 	indices[1] = 5;
@@ -101,7 +100,7 @@ bool cGameApp::OnInit()
 	indices[34] = 4;
 	indices[35] = 0;
 
-	g_pIB->Unlock();
+	_pIB->Unlock();
 
 
 	return true;
@@ -116,7 +115,7 @@ void cGameApp::OnUpdate(const float elapseT)
 
 void cGameApp::OnRender(const float elapseT)
 {
-	if (SUCCEEDED(g_peng->Clear( 
+	if (SUCCEEDED(graphic::GetDevice()->Clear( 
 		0,			//청소할 영역의 D3DRECT 배열 갯수		( 전체 클리어 0 )
 		NULL,		//청소할 영역의 D3DRECT 배열 포인터		( 전체 클리어 NULL )
 		D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,	//청소될 버퍼 플레그 ( D3DCLEAR_TARGET 컬러버퍼, D3DCLEAR_ZBUFFER 깊이버퍼, D3DCLEAR_STENCIL 스텐실버퍼
@@ -126,16 +125,16 @@ void cGameApp::OnRender(const float elapseT)
 		)))
 	{
 		//화면 청소가 성공적으로 이루어 졌다면... 랜더링 시작
-		g_peng->BeginScene();
+		graphic::GetDevice()->BeginScene();
 
-		g_peng->SetStreamSource( 0, g_pVB, 0, sizeof( Vertex ) );
-		g_peng->SetFVF( Vertex::FVF );
-		g_peng->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 1 );
+		graphic::GetDevice()->SetStreamSource( 0, _pVB, 0, sizeof( Vertex ) );
+		graphic::GetDevice()->SetFVF( Vertex::FVF );
+		graphic::GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, 1 );
 
 		//랜더링 끝
-		g_peng->EndScene();
+		graphic::GetDevice()->EndScene();
 		//랜더링이 끝났으면 랜더링된 내용 화면으로 전송
-		g_peng->Present( NULL, NULL, NULL, NULL );
+		graphic::GetDevice()->Present( NULL, NULL, NULL, NULL );
 	}
 }
 
