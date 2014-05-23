@@ -8,11 +8,13 @@ namespace graphic
 		cMaterial(void);
 		virtual ~cMaterial(void);
 
-		void Init(const Vector4 &ambient,
+		void Init(
+			const Vector4 &ambient,
 			const Vector4 &diffuse,
 			const Vector4 &specular,
 			const Vector4 &emissive,
-			const float pow);
+			const float pow
+			);
 		void InitRed();
 		void InitBlue();
 		void Bind();

@@ -70,6 +70,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="cBox.h" />
     <ClInclude Include="cMaterial.h" />
     <ClInclude Include="cRenderer.h" />
     <ClInclude Include="DxInit.h" />
@@ -78,6 +79,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="cBox.cpp" />
     <ClCompile Include="cMaterial.cpp" />
     <ClCompile Include="cRenderer.cpp" />
     <ClCompile Include="DxInit.cpp" />

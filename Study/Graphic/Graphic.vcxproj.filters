@@ -7,11 +7,13 @@
     <ClInclude Include="DxInit.h" />
     <ClInclude Include="cMaterial.h" />
     <ClInclude Include="cRenderer.h" />
+    <ClInclude Include="cBox.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="DxInit.cpp" />
     <ClCompile Include="cMaterial.cpp" />
     <ClCompile Include="cRenderer.cpp" />
+    <ClCompile Include="cBox.cpp" />
   </ItemGroup>
 </Project>
