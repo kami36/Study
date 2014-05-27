@@ -22,6 +22,12 @@
     <ClInclude Include="etc\singleton.h">
       <Filter>etc</Filter>
     </ClInclude>
+    <ClInclude Include="etc\filepath.h">
+      <Filter>etc</Filter>
+    </ClInclude>
+    <ClInclude Include="etc\stringfunc.h">
+      <Filter>etc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -36,6 +42,12 @@
     </ClCompile>
     <ClCompile Include="math\vector4.cpp">
       <Filter>math</Filter>
+    </ClCompile>
+    <ClCompile Include="etc\filepath.cpp">
+      <Filter>etc</Filter>
+    </ClCompile>
+    <ClCompile Include="etc\stringfunc.cpp">
+      <Filter>etc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
