@@ -1,0 +1,124 @@
+
+
+@@item 프로그레시브 메쉬 출력하기. ---------------------------------------
+
+@@item 1. 프로그레시브 메쉬 선언.
+ID3DXPMesh *g_pPMesh;
+
+
+@@item 2. 프로그레시브 메쉬 제거.
+	if (g_pPMesh)
+		g_pPMesh->Release();
+
+
+@@item 3. 메쉬 최적화 하기.
+	// 메쉬 최적화
+	hr = g_pMesh->OptimizeInplace( 
+		D3DXMESHOPT_COMPACT | D3DXMESHOPT_ATTRSORT | D3DXMESHOPT_VERTEXCACHE, 
+		(DWORD*)adjBuff->GetBufferPointer(), (DWORD*)adjBuff->GetBufferPointer(), 0, 0 );
+
+	if (FAILED(hr))
+		return false;
+
+
+@@item 4. 프로그레시브 메쉬 생성하기.
+	// 프로그레시브 메쉬 생성.
+	hr = D3DXGeneratePMesh(g_pMesh, (DWORD*)adjBuff->GetBufferPointer(), 0, 0, 1, 
+		D3DXMESHSIMP_FACE, &g_pPMesh );
+	g_pMesh->Release();
+	g_pMesh = NULL;
+	adjBuff->Release();
+	if (FAILED(hr))
+		return false;
+
+
+
+@@item 5. 프로그레시브 메쉬 출력하기.
+		for( int i = 0; i < (int)g_Mtrls.size(); ++i )
+		{
+			g_pDevice->SetMaterial( &g_Mtrls[ i] );
+			g_pDevice->SetTexture( 0, g_Texture[ i] );
+			g_pPMesh->DrawSubset( i );
+		}
+
+
+@@item 6. 프로그레시브 메쉬 면을 증가/감소 시키기.
+	// 프로그레시브 메쉬, 면 증가/감소 시키기.
+	const int numFaces = g_pPMesh->GetNumFaces();
+	if (::GetAsyncKeyState('A') & 0x8000f)
+	{
+		// 면을 중가 시킨다.
+		g_pPMesh->SetNumFaces( numFaces + 4 );
+		if (g_pPMesh->GetNumFaces() == numFaces)
+			g_pPMesh->SetNumFaces( numFaces + 8 );
+	}
+
+	if (::GetAsyncKeyState('S') & 0x8000f)
+		g_pPMesh->SetNumFaces( numFaces - 4 ); // 면을 감소 시킨다.
+
+
+
+@@item maxscript 애니메이션 정보 뽑기. ---------------------------------------
+
+
+@@item 1. WriteAni 함수 정의하기
+fn WriteAni obj = 
+(
+
+
+)
+
+
+@@item 2. WriteAni 함수 호출하기.
+WriteAni g_varSetMeshes[ i]
+
+
+@@item 3. 이동 정보 모으기.
+	postrack = #()
+	
+	-- Collect
+	if obj.pos.isAnimated then
+	(
+		obj.pos.controller = tcb_position()
+		local keys = obj.pos.controller.keys
+		local oldkey
+
+		start = 1
+		if keys.count > 1 then	
+			start = 2
+		
+		for i=start to keys.count do
+		(
+			-- 전의 키와 같다면 넘어간다.
+			if i > start then
+			(
+				if abs (oldkey.x - keys[i].value.x) < g_fEpsilon and
+				   abs (oldkey.y - keys[i].value.y) < g_fEpsilon and
+				   abs (oldkey.z - keys[i].value.z) < g_fEpsilon do 
+					continue
+			)
+			oldkey = keys[i].value
+			append postrack keys[i]
+		)
+	)
+
+
+@@item 4. 이동 오차 한계 범위 설정
+global g_fEpsilon = 0.0001
+
+
+@@item 5. 이동 정보 저장하기.
+	-- Write
+	format "KEY_POS = %\n" postrack.count to:Outfile
+	
+	for i = 1 to postrack.count do
+	(
+		local t = postrack[i].time
+		if t < 0 then 
+			t = 0
+			
+		pos = (ConvertToD3D_POS postrack[i].value)
+		format "FRAME_POS % % % % \n" t pos.x pos.y pos.z to:Outfile
+	)
+
+
